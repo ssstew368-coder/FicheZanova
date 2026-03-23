@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche Client — Zanova B2C</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --border: #d1dce8;
+    --border-focus: #3b82f6;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --label: #475569;
+    --phase-a-bg: #eff6ff; --phase-a-border: #bfdbfe; --phase-a-color: #1d4ed8;
+    --phase-c-bg: #f5f3ff; --phase-c-border: #ddd6fe; --phase-c-color: #6d28d9;
+    --phase-d-bg: #fff7ed; --phase-d-border: #fed7aa; --phase-d-color: #c2410c;
+    --phase-f-bg: #f0fdf4; --phase-f-border: #bbf7d0; --phase-f-color: #15803d;
+    --red: #dc2626;
+    --green: #16a34a;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--accent);
+    color: #fff;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+  }
+  .topbar h1 { font-size: 1rem; font-weight: 700; }
+  .topbar p { font-size: 0.73rem; opacity: 0.78; margin-top: 2px; }
+  .agent-display {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .agent-display:hover { background: rgba(255,255,255,0.32); }
+
+  /* BOUTON MISE À JOUR */
+  .btn-update {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-update:hover { background: rgba(255,255,255,0.28); }
+
+  /* État "mise à jour disponible" */
+  .btn-update.has-update {
+    background: #f97316;
+    border-color: #fb923c;
+    color: #fff;
+    animation: pulse-update 2s infinite;
+    box-shadow: 0 0 12px rgba(249,115,22,0.6);
+  }
+  .btn-update.has-update:hover { background: #ea6c0a; }
+
+  @keyframes pulse-update {
+    0%   { box-shadow: 0 0 6px rgba(249,115,22,0.5); }
+    50%  { box-shadow: 0 0 18px rgba(249,115,22,0.9); }
+    100% { box-shadow: 0 0 6px rgba(249,115,22,0.5); }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.4);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 30px 26px;
+    width: 360px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  }
+  .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
+  .modal p { font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+  .modal input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-family: 'Inter', sans-serif; font-size: 0.9rem;
+    color: var(--text); outline: none; margin-bottom: 12px;
+  }
+  .modal input:focus { border-color: var(--border-focus); }
+  .modal-btn {
+    width: 100%; padding: 11px; background: var(--accent);
+    border: none; border-radius: 8px; color: #fff;
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  }
+  .modal-btn:hover { opacity: 0.9; }
+
+  /* MAIN */
+  .main {
+    max-width: 820px;
+    margin: 26px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* BLOC PROSPECT (nouveau) */
+  .prospect-bloc {
+    background: #fff;
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(37,99,235,0.12);
+  }
+  .prospect-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 18px;
+    font-size: 0.71rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+  }
+  .prospect-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ligne-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .ligne-row input {
+    width: 110px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    outline: none;
+    text-align: center;
+  }
+  .ligne-row input:focus { border-color: #1d4ed8; }
+
+  /* Confirmation prospect */
+  .prospect-confirm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    min-height: 42px;
+    transition: all 0.2s;
+  }
+  .prospect-confirm.empty {
+    background: #f8fafc;
+    border: 1.5px dashed var(--border);
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .prospect-confirm.found {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    color: #15803d;
+  }
+  .prospect-confirm.not-found {
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    color: #dc2626;
+  }
+  .prospect-confirm .icon { font-size: 1.1rem; flex-shrink: 0; }
+  .prospect-confirm .infos { display: flex; flex-direction: column; gap: 1px; }
+  .prospect-confirm .infos small { font-size: 0.75rem; font-weight: 400; opacity: 0.75; }
+
+  /* Résultat appel */
+  .resultat-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .resultat-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 2px solid var(--border);
+    border-radius: 7px; padding: 7px 14px; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; user-select: none;
+    transition: all 0.13s; background: #f8fafc; color: var(--text);
+  }
+  .resultat-pill input { display: none; }
+  .resultat-pill.rdv:has(input:checked)    { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+  .resultat-pill.repond:has(input:checked) { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+  .resultat-pill.absent:has(input:checked) { background: #fef9c3; border-color: #eab308; color: #854d0e; }
+  .resultat-pill.refus:has(input:checked)  { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
+  .resultat-pill.rappel:has(input:checked) { background: #f3e8ff; border-color: #a855f7; color: #7e22ce; }
+
+  /* PHASE */
+  .phase {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; font-size: 0.71rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.1px;
+    border-bottom: 1px solid transparent;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  .phase-a .phase-header { background: var(--phase-a-bg); color: var(--phase-a-color); border-bottom-color: var(--phase-a-border); }
+  .phase-a .dot { background: var(--phase-a-color); }
+  .phase-c .phase-header { background: var(--phase-c-bg); color: var(--phase-c-color); border-bottom-color: var(--phase-c-border); }
+  .phase-c .dot { background: var(--phase-c-color); }
+  .phase-d .phase-header { background: var(--phase-d-bg); color: var(--phase-d-color); border-bottom-color: var(--phase-d-border); }
+  .phase-d .dot { background: var(--phase-d-color); }
+  .phase-f .phase-header { background: var(--phase-f-bg); color: var(--phase-f-color); border-bottom-color: var(--phase-f-border); }
+  .phase-f .dot { background: var(--phase-f-color); }
+
+  .phase-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* FIELDS */
+  .field-row { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    font-size: 0.75rem; font-weight: 600; color: var(--label);
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  input[type="text"], input[type="email"], input[type="number"], textarea {
+    background: #fff; border: 1.5px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.87rem;
+    padding: 8px 11px; outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  input:focus, textarea:focus { border-color: var(--border-focus); }
+  textarea { resize: vertical; min-height: 50px; }
+
+  /* PILLS */
+  .pill-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #f8fafc; border: 1.5px solid var(--border);
+    border-radius: 7px; padding: 6px 12px; font-size: 0.83rem;
+    font-weight: 500; cursor: pointer; user-select: none;
+    transition: all 0.13s; color: var(--text);
+  }
+  .pill input { display: none; }
+  .pill:has(input:checked) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(29,78,216,0.3);
+  }
+
+  /* Champ texte rempli */
+  input.filled, textarea.filled {
+    border-color: #2563eb !important;
+    background: #eff6ff !important;
+    font-weight: 500;
+  }
+
+  /* LAYOUTS */
+  .with-note { display: grid; grid-template-columns: 1fr 200px; gap: 10px; align-items: start; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .age-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+
+  /* RDV */
+  .rdv-shortcuts { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
+  .rdv-label { font-size: 0.73rem; color: var(--muted); }
+  .rdv-shortcut {
+    background: #f1f5f9; border: 1.5px solid var(--border); border-radius: 7px;
+    padding: 5px 11px; font-size: 0.79rem; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all 0.13s; font-family: 'Inter', sans-serif;
+  }
+  .rdv-shortcut:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+  /* ACTIONS */
+  .actions {
+    max-width: 820px; margin: 0 auto; padding: 0 20px;
+    display: flex; gap: 10px; flex-direction: column;
+  }
+  .actions-row { display: flex; gap: 10px; }
+
+  .btn-send {
+    flex: 1; padding: 14px; background: #16a34a;
+    border: none; border-radius: 10px; color: #fff;
+    font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-send:hover { opacity: 0.88; }
+  .btn-send:disabled { background: #86efac; cursor: not-allowed; }
+
+  .btn-export {
+    flex: 1; padding: 13px; background: var(--accent);
+    border: none; border-radius: 10px; color: #fff;
+    font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-export:hover { opacity: 0.88; }
+
+  .btn-reset {
+    padding: 13px 22px; background: #fff; border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--muted);
+    font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* BOUTON ENVOI RAPIDE */
+  .btn-quick-send {
+    width: 100%; padding: 11px 16px;
+    background: #1d4ed8;
+    border: none; border-radius: 8px; color: #fff;
+    font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    margin-top: 4px;
+  }
+  .btn-quick-send:hover { opacity: 0.88; }
+  .btn-quick-send:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    padding: 13px 24px; border-radius: 10px;
+    font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600;
+    color: #fff; z-index: 9999; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { background: #16a34a; }
+  #toast.error   { background: #dc2626; }
+  #toast.info    { background: #2563eb; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <h1>📋 Campagne B2C — Isolation</h1>
+    <p>Fiche client · Zanova</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="btn-update" id="btn_update" onclick="telechargerMiseAJour()" title="Vérification...">🔄 Mise à jour</button>
+    <span style="font-size:0.78rem;opacity:0.75;">Agent :</span>
+    <div class="agent-display" id="agent_display" onclick="openConfig()">— Configurer →</div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-overlay" id="modal_overlay">
+  <div class="modal">
+    <h2>⚙️ Nom de l'agent</h2>
+    <p>Votre nom sera inscrit automatiquement sur chaque fiche Excel. Il est sauvegardé localement et ne sera demandé qu'une seule fois.</p>
+    <input type="text" id="agent_input" placeholder="Votre prénom et nom">
+    <button class="modal-btn" onclick="saveAgent()">Enregistrer</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- BLOC PROSPECT -->
+  <div class="prospect-bloc">
+    <div class="prospect-header">🎯 Identification du prospect — Fichier Sheets</div>
+    <div class="prospect-body">
+
+      <div class="ligne-row">
+        <div class="field-row" style="flex-shrink:0;">
+          <label class="field-label">N° de ligne</label>
+          <input type="number" id="ligne_num" min="2" placeholder="ex : 5"
+                 oninput="onLigneChange(this.value)" style="width:110px;border:2px solid var(--accent);font-size:1.05rem;font-weight:700;color:var(--accent);text-align:center;">
+        </div>
+        <div style="flex:1; padding-top:22px;">
+          <div class="prospect-confirm empty" id="prospect_confirm">
+            <span class="icon">🔍</span>
+            <span>Entrez le numéro de ligne du prospect</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Résultat de l'appel</label>
+        <div class="resultat-row">
+          <label class="resultat-pill rdv">
+            <input type="radio" name="resultat_appel" value="✅ RDV pris"> ✅ RDV pris
+          </label>
+          <label class="resultat-pill repond">
+            <input type="radio" name="resultat_appel" value="📞 Intéressé - rappel"> 📞 Intéressé – rappel
+          </label>
+          <label class="resultat-pill absent">
+            <input type="radio" name="resultat_appel" value="📵 Absent"> 📵 Absent
+          </label>
+          <label class="resultat-pill refus">
+            <input type="radio" name="resultat_appel" value="❌ Refus"> ❌ Refus
+          </label>
+          <label class="resultat-pill rappel">
+            <input type="radio" name="resultat_appel" value="🔄 À rappeler"> 🔄 À rappeler
+          </label>
+        </div>
+      </div>
+
+      <!-- BOUTON ENVOI RAPIDE -->
+      <button class="btn-quick-send" id="btn_quick" onclick="envoyerRapide()">
+        <span id="btn_quick_text">⚡ Envoyer vers Sheets (sans CSV)</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- PHASE A+B -->
+  <div class="phase phase-a">
+    <div class="phase-header"><div class="dot"></div>Phase A+B — Accroche &amp; Logement</div>
+    <div class="phase-body">
+
+      <div class="field-row">
+        <label class="field-label">Nom du prospect</label>
+        <input type="text" id="nom" placeholder="M. / Mme …">
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Propriétaire du logement</label>
+        <div class="pill-row">
+          <label class="pill"><input type="radio" name="proprio" value="Propriétaire +15 ans"> 🏠 Propriétaire +15 ans</label>
+          <label class="pill"><input type="radio" name="proprio" value="Locataire avec accord"> 📄 Locataire avec accord</label>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Mode de chauffage</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="checkbox" value="Gaz" data-group="chauffage"> Gaz</label>
+            <label class="pill"><input type="checkbox" value="Électrique" data-group="chauffage"> Électrique</label>
+            <label class="pill"><input type="checkbox" value="Fioul" data-group="chauffage"> Fioul</label>
+            <label class="pill"><input type="checkbox" value="Pompe à chaleur" data-group="chauffage"> Pompe à chaleur</label>
+            <label class="pill"><input type="checkbox" value="Bois/Pellets" data-group="chauffage"> Bois / Pellets</label>
+          </div>
+          <textarea id="chauffage_note" placeholder="Autre…"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Isolation existante</label>
+        <div class="pill-row">
+          <label class="pill"><input type="radio" name="isolation_ex" value="Non"> ❌ Non</label>
+          <label class="pill"><input type="radio" name="isolation_ex" value="Oui"> ✅ Oui</label>
+        </div>
+      </div>
+
+      <div id="isolation_details" style="display:none; background:#f8fafc; border:1.5px solid #bfdbfe; border-radius:10px; padding:14px 16px; flex-direction:column; gap:12px;">
+        <div style="font-size:0.72rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.8px;">↳ Détails de l'isolation existante</div>
+        <div class="two-col">
+          <div class="field-row">
+            <label class="field-label">Date de l'isolation</label>
+            <input type="text" id="isolation_date" placeholder="Ex : 2012, avant 2010…">
+          </div>
+          <div class="field-row">
+            <label class="field-label">Matière isolante</label>
+            <input type="text" id="isolation_matiere" placeholder="Ex : laine de verre, ouate…">
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Note complémentaire</label>
+          <input type="text" id="isolation_note" placeholder="État, épaisseur, remarque…">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE C -->
+  <div class="phase phase-c">
+    <div class="phase-header"><div class="dot"></div>Phase C — Faisabilité Technique</div>
+    <div class="phase-body">
+
+      <div class="field-row">
+        <label class="field-label">Type de combles</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="combles" value="Perdus"> Perdus</label>
+            <label class="pill"><input type="radio" name="combles" value="Aménagés"> Aménagés</label>
+            <label class="pill"><input type="radio" name="combles" value="Aménageables"> Aménageables</label>
+          </div>
+          <textarea id="combles_note" placeholder="Précision…"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Surface des combles</label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <label class="pill"><input type="radio" name="surface" value="+20m²"> ✅ + 20 m²</label>
+          <span style="font-size:0.8rem;color:var(--muted);">ou préciser :</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="number" id="surface_m2" min="1" placeholder="Ex : 45" style="width:100px;" oninput="this.classList.toggle('filled', this.value.trim()!='')">
+            <span style="font-size:0.85rem;color:var(--label);font-weight:600;">m²</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Accès aux combles</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="acces" value="Trappe"> Trappe</label>
+            <label class="pill"><input type="radio" name="acces" value="Escalier"> Escalier</label>
+            <label class="pill"><input type="radio" name="acces" value="Difficile"> Difficile</label>
+          </div>
+          <textarea id="acces_note" placeholder="Précision…"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE D -->
+  <div class="phase phase-d">
+    <div class="phase-header"><div class="dot"></div>Phase D — Qualification Financière</div>
+    <div class="phase-body">
+
+      <div class="field-row">
+        <label class="field-label">Âge du prospect</label>
+        <div class="age-row">
+          <label class="pill"><input type="radio" name="age" value="Moins de 72 ans"> &lt; 72 ans ✅</label>
+          <input type="text" id="age_note" placeholder="Âge exact (optionnel)">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Situation professionnelle</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="statut_pro" value="CDI"> CDI</label>
+            <label class="pill"><input type="radio" name="statut_pro" value="Retraité(e)"> Retraité(e)</label>
+          </div>
+          <textarea id="statut_note" placeholder="Autre (préciser)…"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Situation familiale &amp; reste à vivre</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="situation" value="En couple (reste > 1 200 €/mois)"> En couple &nbsp;<small style="opacity:.6;font-size:.78em">&gt; 1 200 €/mois</small></label>
+            <label class="pill"><input type="radio" name="situation" value="Seul(e) (reste > 1 000 €/mois)"> Seul(e) &nbsp;<small style="opacity:.6;font-size:.78em">&gt; 1 000 €/mois</small></label>
+          </div>
+          <textarea id="situation_note" placeholder="Précision…"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PHASE F -->
+  <div class="phase phase-f">
+    <div class="phase-header"><div class="dot"></div>Phase F — Closing &amp; Données Client</div>
+    <div class="phase-body">
+
+      <div class="two-col">
+        <div class="field-row">
+          <label class="field-label">Adresse complète</label>
+          <input type="text" id="adresse" placeholder="Rue, code postal, ville">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Email</label>
+          <input type="email" id="email" placeholder="client@email.com">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field-row">
+          <label class="field-label">Personnes au foyer</label>
+          <input type="number" id="nb_personnes" min="1" max="20" placeholder="Ex : 3">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Facture énergétique (€/an)</label>
+          <input type="text" id="facture" placeholder="Ex : 1 800 €">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Crédit(s) en cours</label>
+        <div class="with-note">
+          <div class="pill-row">
+            <label class="pill"><input type="checkbox" value="Immobilier" data-group="credits"> Immobilier</label>
+            <label class="pill"><input type="checkbox" value="Voiture" data-group="credits"> Voiture</label>
+            <label class="pill"><input type="checkbox" value="Consommation" data-group="credits"> Consommation</label>
+            <label class="pill"><input type="checkbox" value="Aucun" data-group="credits"> Aucun</label>
+          </div>
+          <textarea id="credits_note" placeholder="Montant(s)…"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">RDV — Rappel responsable</label>
+        <textarea id="rdv_note" placeholder="Ex : Demain matin à 9h30…" style="min-height:42px;"></textarea>
+        <div class="rdv-shortcuts">
+          <span class="rdv-label">Raccourcis :</span>
+          <button type="button" class="rdv-shortcut" onclick="setRdv('Dans quelques minutes')">⚡ Dans quelques minutes</button>
+          <button type="button" class="rdv-shortcut" onclick="setRdv('Demain matin')">🌅 Demain matin</button>
+          <button type="button" class="rdv-shortcut" onclick="setRdv('Demain après-midi')">🌤️ Demain après-midi</button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Commentaires / Observations</label>
+        <textarea id="commentaires" placeholder="Toute info utile pour le responsable…" style="min-height:64px;"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ACTIONS -->
+<div class="actions">
+  <button class="btn-send" id="btn_send" onclick="envoyerFiche()">
+    <span id="btn_send_text">🚀 Envoyer vers Google Sheets + Télécharger Excel</span>
+  </button>
+  <div class="actions-row">
+    <button class="btn-export" onclick="exportExcel()">⬇️ CSV local uniquement</button>
+    <button class="btn-reset" onclick="resetForm()">🔄 Nouvelle fiche</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+  // ════════════════════════════════════════════════════
+  //  ⚠️  COLLER ICI L'URL DU WEBHOOK APPS SCRIPT
+  // ════════════════════════════════════════════════════
+  const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzrmb7ICHoh2YKApC_dNebaen0UKDg62-U_REA_EyhLPS32aeY_bISB104SipJJJw/exec';
+
+  // ── MISE À JOUR ──
+  const VERSION_ACTUELLE = '1.0.0';
+  const URL_VERSION      = 'https://raw.githubusercontent.com/ssstew368-coder/FicheZanova/main/version.json';
+  const URL_MISE_A_JOUR  = 'https://raw.githubusercontent.com/ssstew368-coder/FicheZanova/main/fiche_b2c.html';
+
+  // Vérifie la version au chargement
+  function verifierVersion() {
+    fetch(URL_VERSION + '?t=' + Date.now()) // cache-busting
+      .then(function(resp) {
+        if (!resp.ok) return;
+        return resp.json();
+      })
+      .then(function(data) {
+        if (!data) return;
+        var btn = document.getElementById('btn_update');
+        if (data.version && data.version !== VERSION_ACTUELLE) {
+          // Nouvelle version disponible
+          btn.classList.add('has-update');
+          btn.innerHTML = '🔴 Mise à jour v' + data.version;
+          btn.title = 'Version actuelle : ' + VERSION_ACTUELLE + ' → Nouvelle : ' + data.version;
+        } else {
+          btn.classList.remove('has-update');
+          btn.innerHTML = '🔄 Mise à jour';
+          btn.title = 'Version ' + VERSION_ACTUELLE + ' — à jour';
+        }
+      })
+      .catch(function() {
+        // Pas de réseau ou fichier absent → on ignore silencieusement
+      });
+  }
+
+  function telechargerMiseAJour() {
+    var btn = document.getElementById('btn_update');
+    btn.textContent = '⏳ Téléchargement…';
+
+    fetch(URL_MISE_A_JOUR + '?t=' + Date.now())
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('Fichier introuvable sur GitHub');
+        return resp.blob();
+      })
+      .then(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = 'fiche_b2c.html';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 1000);
+        btn.classList.remove('has-update');
+        btn.innerHTML = '✅ Téléchargé !';
+        setTimeout(function() { btn.innerHTML = '🔄 Mise à jour'; }, 3000);
+        showToast('✅ Nouvelle version téléchargée ! Remplace ton fichier actuel par le nouveau.', 'success', 7000);
+      })
+      .catch(function(err) {
+        btn.innerHTML = '🔄 Mise à jour';
+        showToast('❌ Téléchargement impossible : ' + err.message, 'error', 5000);
+      });
+  }
+
+  // ── AGENT ──
+  function loadAgent() {
+    const name = localStorage.getItem('zanova_agent') || '';
+    document.getElementById('agent_display').textContent = name || '— Configurer →';
+    if (!name) setTimeout(openConfig, 500);
+  }
+  function openConfig() {
+    document.getElementById('agent_input').value = localStorage.getItem('zanova_agent') || '';
+    document.getElementById('modal_overlay').classList.add('open');
+    setTimeout(() => document.getElementById('agent_input').focus(), 120);
+  }
+  function saveAgent() {
+    const name = document.getElementById('agent_input').value.trim();
+    if (!name) return;
+    localStorage.setItem('zanova_agent', name);
+    document.getElementById('agent_display').textContent = name;
+    document.getElementById('modal_overlay').classList.remove('open');
+  }
+  document.getElementById('modal_overlay').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('agent_input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveAgent();
+  });
+
+  // ── ISOLATION TOGGLE ──
+  document.querySelectorAll('input[name="isolation_ex"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const box = document.getElementById('isolation_details');
+      if (el.value === 'Oui' && el.checked) {
+        box.style.display = 'flex';
+      } else if (el.value === 'Non' && el.checked) {
+        box.style.display = 'none';
+        document.getElementById('isolation_date').value = '';
+        document.getElementById('isolation_matiere').value = '';
+        document.getElementById('isolation_note').value = '';
+        ['isolation_date','isolation_matiere','isolation_note'].forEach(id => {
+          document.getElementById(id).classList.remove('filled');
+        });
+      }
+    });
+  });
+
+  // ── FILLED CLASS ──
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], textarea').forEach(el => {
+    const check = () => el.classList.toggle('filled', el.value.trim() !== '');
+    el.addEventListener('input', check);
+    el.addEventListener('change', check);
+  });
+
+  // ── CONFIRMATION PROSPECT EN TEMPS RÉEL ──
+  function onLigneChange(val) {
+    const box = document.getElementById('prospect_confirm');
+    const num = parseInt(val);
+    if (!val || isNaN(num) || num < 2) {
+      box.className = 'prospect-confirm empty';
+      box.innerHTML = '<span class="icon">🔍</span><span>Entrez le numéro de ligne du prospect</span>';
+      return;
+    }
+    // Affichage "en cours de vérification" — la vraie vérif se fait à l'envoi
+    box.className = 'prospect-confirm found';
+    box.innerHTML = `<span class="icon">📋</span><div class="infos"><span>Ligne ${num} sélectionnée</span><small>Le nom sera confirmé à l'envoi</small></div>`;
+  }
+
+  // ── RDV SHORTCUTS ──
+  function setRdv(text) {
+    const ta = document.getElementById('rdv_note');
+    const cur = ta.value.trim();
+    const shortcuts = ['Dans quelques minutes', 'Demain matin', 'Demain après-midi'];
+    let replaced = false;
+    for (const s of shortcuts) {
+      if (cur.startsWith(s)) { ta.value = cur.replace(s, text); replaced = true; break; }
+    }
+    if (!replaced) ta.value = cur ? text + ' — ' + cur : text;
+    ta.classList.add('filled');
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+  }
+
+  // ── HELPERS ──
+  function getChecked(group) {
+    return [...document.querySelectorAll(`input[data-group="${group}"]:checked`)]
+      .map(el => el.value).join(', ') || '—';
+  }
+  function getRadio(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '—';
+  }
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? (el.value.trim() || '—') : '—';
+  }
+  function getSurface() {
+    const radio = document.querySelector('input[name="surface"]:checked');
+    const custom = document.getElementById('surface_m2').value.trim();
+    if (custom) return custom + ' m²';
+    if (radio) return radio.value;
+    return '—';
+  }
+  function getNow() {
+    const now = new Date();
+    const d = now.toLocaleDateString('fr-FR');
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    return `${d} ${h}:${m}`;
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'info', duration = 3500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = ''; }, duration);
+  }
+
+  // ── COLLECTE DES DONNÉES ──
+  function collectData() {
+    const isolOk = getRadio('isolation_ex') === 'Oui';
+    return {
+      rowIndex:        parseInt(document.getElementById('ligne_num').value) || 0,
+      agent:           localStorage.getItem('zanova_agent') || 'Non renseigné',
+      dateHeure:       getNow(),
+      resultatAppel:   getRadio('resultat_appel'),
+      proprio:         getRadio('proprio'),
+      chauffage:       getChecked('chauffage') + (val('chauffage_note') !== '—' ? ' / ' + val('chauffage_note') : ''),
+      isolationEx:     getRadio('isolation_ex'),
+      isolationDate:   isolOk ? val('isolation_date') : '—',
+      isolationMatiere:isolOk ? val('isolation_matiere') : '—',
+      combles:         getRadio('combles') + (val('combles_note') !== '—' ? ' / ' + val('combles_note') : ''),
+      surface:         getSurface(),
+      acces:           getRadio('acces') + (val('acces_note') !== '—' ? ' / ' + val('acces_note') : ''),
+      age:             getRadio('age') + (val('age_note') !== '—' ? ' (' + val('age_note') + ')' : ''),
+      statutPro:       getRadio('statut_pro') + (val('statut_note') !== '—' ? ' / ' + val('statut_note') : ''),
+      situation:       getRadio('situation') + (val('situation_note') !== '—' ? ' / ' + val('situation_note') : ''),
+      adresse:         val('adresse'),
+      email:           val('email'),
+      nbPersonnes:     val('nb_personnes'),
+      facture:         val('facture'),
+      credits:         getChecked('credits') + (val('credits_note') !== '—' ? ' / ' + val('credits_note') : ''),
+      rdvNote:         val('rdv_note'),
+      commentaires:    val('commentaires'),
+    };
+  }
+
+  // ── ENVOI RAPIDE (sans CSV local) ──
+  async function envoyerRapide() {
+    const data = collectData();
+
+    if (!data.rowIndex || data.rowIndex < 2) {
+      showToast('⚠️ Entrez le numéro de ligne du prospect.', 'error');
+      document.getElementById('ligne_num').focus();
+      return;
+    }
+
+    const btn = document.getElementById('btn_quick');
+    const txt = document.getElementById('btn_quick_text');
+    btn.disabled = true;
+    txt.textContent = '⏳ Envoi en cours…';
+
+    try {
+      const dataSheets = Object.assign({}, data);
+      delete dataSheets.agent;
+
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataSheets)
+      });
+
+      const resultat = data.resultatAppel !== '—' ? data.resultatAppel : 'mis à jour';
+      showToast('⚡ Ligne ' + data.rowIndex + ' — ' + resultat, 'success', 3500);
+
+      const box = document.getElementById('prospect_confirm');
+      box.className = 'prospect-confirm found';
+      box.innerHTML = '<span class="icon">⚡</span><div class="infos"><span>Envoi rapide — ligne ' + data.rowIndex + '</span><small>' + data.dateHeure + '</small></div>';
+
+    } catch (err) {
+      showToast('❌ Erreur réseau.', 'error', 4000);
+    }
+
+    btn.disabled = false;
+    txt.textContent = '⚡ Envoyer vers Sheets (sans CSV)';
+  }
+
+  // ── ENVOYER VERS SHEETS + EXCEL LOCAL ──
+  async function envoyerFiche() {
+    const data = collectData();
+
+    // Validation N° de ligne
+    if (!data.rowIndex || data.rowIndex < 2) {
+      showToast('⚠️ Entrez le numéro de ligne du prospect.', 'error');
+      document.getElementById('ligne_num').focus();
+      return;
+    }
+
+    // Validation webhook configuré
+
+    // Désactiver bouton
+    const btn = document.getElementById('btn_send');
+    const txt = document.getElementById('btn_send_text');
+    btn.disabled = true;
+    txt.textContent = '⏳ Envoi en cours…';
+
+    try {
+      // On envoie tout SAUF data.agent au Sheets
+      // La colonne G est réservée à la distribution — on ne l'écrase pas
+      const dataSheets = Object.assign({}, data);
+      delete dataSheets.agent;
+
+      const resp = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors', // nécessaire pour Apps Script depuis fichier local
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataSheets)
+      });
+
+      // no-cors = pas de lecture de réponse possible → on fait confiance
+      // La confirmation du nom client viendra du Sheets côté manager
+      showToast(`✅ Envoyé sur la ligne ${data.rowIndex} — Excel local téléchargé.`, 'success', 4000);
+
+      // Mettre à jour l'affichage de confirmation
+      const box = document.getElementById('prospect_confirm');
+      box.className = 'prospect-confirm found';
+      box.innerHTML = `<span class="icon">✅</span><div class="infos"><span>Fiche envoyée — ligne ${data.rowIndex}</span><small>${data.dateHeure}</small></div>`;
+
+    } catch (err) {
+      showToast('❌ Erreur réseau — fiche enregistrée en local uniquement.', 'error', 5000);
+    }
+
+    // Export local dans tous les cas
+    exportExcel(data);
+
+    // Réactiver bouton
+    btn.disabled = false;
+    txt.textContent = '🚀 Envoyer vers Google Sheets + Télécharger Excel';
+  }
+
+  // ── EXPORT CSV LOCAL ──
+  function exportExcel(data) {
+    if (!data) data = collectData();
+
+    const headers = [
+      'Ligne fichier', 'Résultat appel', 'Agent', 'Date-Heure appel',
+      'Nom prospect', 'Propriétaire', 'Chauffage', 'Isolation existante',
+      'Date isolation', 'Matière isolante', 'Type de combles', 'Surface combles',
+      'Accès combles', 'Âge', 'Situation pro', 'Situation familiale',
+      'Adresse client', 'Email', 'Nb personnes foyer', 'Facture énergie',
+      'Crédits en cours', 'RDV responsable', 'Commentaires'
+    ];
+
+    const values = [
+      data.rowIndex         || '—',
+      data.resultatAppel    || '—',
+      data.agent            || '—',
+      data.dateHeure        || '—',
+      val('nom'),
+      data.proprio          || '—',
+      data.chauffage        || '—',
+      data.isolationEx      || '—',
+      data.isolationDate    || '—',
+      data.isolationMatiere || '—',
+      data.combles          || '—',
+      data.surface          || '—',
+      data.acces            || '—',
+      data.age              || '—',
+      data.statutPro        || '—',
+      data.situation        || '—',
+      data.adresse          || '—',
+      data.email            || '—',
+      data.nbPersonnes      || '—',
+      data.facture          || '—',
+      data.credits          || '—',
+      data.rdvNote          || '—',
+      data.commentaires     || '—',
+    ];
+
+    const escape = v => {
+      const s = String(v).replace(/"/g, '""');
+      return /[,;"\n]/.test(s) ? '"' + s + '"' : s;
+    };
+
+    const csvContent = '\uFEFF'
+      + headers.map(escape).join(',') + '\n'
+      + values.map(escape).join(',');
+
+    const nomFile = val('nom').replace(/[^a-zA-Z0-9\u00C0-\u00FF _-]/g, '').trim() || 'client';
+    const now = new Date();
+    const dateFile = now.toLocaleDateString('fr-FR').replace(/\//g, '-');
+    const heure = now.getHours().toString().padStart(2,'0') + 'h' + now.getMinutes().toString().padStart(2,'0');
+    const filename = `${dateFile}_${heure}_B2C_${nomFile}.csv`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+
+  // ── RESET ──
+  function resetForm() {
+    if (!confirm('Remettre la fiche à zéro pour un nouveau client ?')) return;
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="number"], textarea')
+      .forEach(el => { el.value = ''; el.classList.remove('filled'); });
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]')
+      .forEach(el => el.checked = false);
+    document.getElementById('isolation_details').style.display = 'none';
+    document.getElementById('ligne_num').value = '';
+    const box = document.getElementById('prospect_confirm');
+    box.className = 'prospect-confirm empty';
+    box.innerHTML = '<span class="icon">🔍</span><span>Entrez le numéro de ligne du prospect</span>';
+  }
+
+  loadAgent();
+  verifierVersion();
+</script>
+</body>
+</html>
